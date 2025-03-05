@@ -9,6 +9,7 @@ import {
   updateProfile,
   signOut,
   signInWithPopup,
+  fetchSignInMethodsForEmail,
   type User,
 } from "./firebase";
 import { FcGoogle } from "react-icons/fc"; // Google icon
@@ -70,7 +71,43 @@ const Auth: React.FC = () => {
       setUser(userCredential.user);
     } catch (error: any) {
       console.error(error);
-      setError("Failed to sign in with the selected provider.");
+      if (error.code === "auth/account-exists-with-different-credential") {
+        // Extract the email from the error
+        const email = error.customData?.email;
+
+        // Fetch the sign-in methods for the email
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+
+        // Determine which provider to suggest
+        let suggestedProvider = "email";
+        if (methods.includes("google.com")) {
+          suggestedProvider = "Google";
+        } else if (methods.includes("facebook.com")) {
+          suggestedProvider = "Facebook";
+        } else if (methods.includes("github.com")) {
+          suggestedProvider = "GitHub";
+        }
+
+        // Inform the user
+        setError(
+          `This email is already associated with a ${suggestedProvider} account. Please sign in with ${suggestedProvider}.`
+        );
+
+        // Optionally, redirect the user to the suggested provider's sign-in flow
+        if (suggestedProvider === "Google") {
+          await handleSocialSignIn(googleProvider);
+        } else if (suggestedProvider === "Facebook") {
+          await handleSocialSignIn(facebookProvider);
+        } else if (suggestedProvider === "GitHub") {
+          await handleSocialSignIn(githubProvider);
+        } else {
+          // If the email is associated with an email/password account, prompt the user to sign in with email/password
+          setIsSignUp(false); // Switch to the Sign In form
+          setEmail(email); // Pre-fill the email field
+        }
+      } else {
+        setError("Failed to sign in with the selected provider.");
+      }
     }
   };
 

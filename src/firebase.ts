@@ -9,6 +9,7 @@ import {
   FacebookAuthProvider, 
   GithubAuthProvider, 
   signInWithPopup,
+  fetchSignInMethodsForEmail, // Add this import
   type User // ✅ Use 'type' explicitly when exporting a type
 } from "firebase/auth";
 
@@ -41,7 +42,8 @@ export {
   signInWithEmailAndPassword, 
   updateProfile, 
   signOut, 
-  signInWithPopup
+  signInWithPopup,
+  fetchSignInMethodsForEmail // Export the function
 };
 
 // ✅ Correct way to export a type separately
